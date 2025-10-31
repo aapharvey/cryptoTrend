@@ -18,13 +18,13 @@ def supertrend(df: pd.DataFrame, period: int = 10, multiplier: float = 3.0) -> p
     direction = pd.Series(index=df.index, dtype=int)
 
     st.iloc[0] = upperband.iloc[0]
-    direction.iloc[0] = 1  # 1=downtrend band, -1=uptrend band for init
+    direction.iloc[0] = 1
 
     for i in range(1, len(df)):
         if df['close'].iloc[i] > st.iloc[i-1]:
-            direction.iloc[i] = -1  # uptrend -> use lower band
+            direction.iloc[i] = -1
         elif df['close'].iloc[i] < st.iloc[i-1]:
-            direction.iloc[i] = 1   # downtrend -> use upper band
+            direction.iloc[i] = 1
         else:
             direction.iloc[i] = direction.iloc[i-1]
 

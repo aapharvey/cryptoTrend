@@ -12,18 +12,15 @@ class CCXTClient:
             "enableRateLimit": True,
         })
         if exchange_name == "binance":
-            # Set futures/spot mode
             if market_type.lower().startswith("future"):
                 self.ex.options["defaultType"] = "future"
             else:
                 self.ex.options["defaultType"] = "spot"
 
     def fetch_ohlcv_df(self, symbol: str, timeframe: str, since_ms: Optional[int] = None, limit: int = 1000, lookback_bars: int = 1500) -> pd.DataFrame:
-        """Robust historical pull with pagination to collect ~lookback_bars."""
         all_rows = []
         tf_ms = timeframe_to_ms(timeframe)
         if since_ms is None:
-            # Start roughly lookback bars ago
             now = self.ex.milliseconds()
             since_ms = now - (lookback_bars + 5) * tf_ms
 
@@ -32,10 +29,8 @@ class CCXTClient:
             if not batch:
                 break
             all_rows += batch
-            # Advance since to the last bar + 1
             last_ts = batch[-1][0]
             since_ms = last_ts + 1
-            # Stop if enough bars
             if len(all_rows) >= lookback_bars:
                 break
 

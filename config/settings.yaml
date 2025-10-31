@@ -24,7 +24,7 @@ confluence:
 
 risk:
   risk_per_trade: 0.01
-  max_portfolio_risk: 0.05
+#  max_portfolio_risk: 0.05
   sl_atr_mult: 2.0
   tp_rr: 2.0
 
@@ -33,3 +33,10 @@ backtest:
   slippage_bps: 5
   initial_equity: 10000
   position_mode: one_way
+
+api_mode: live
+
+sentiment:
+  use_fear_greed: true
+  use_funding: true
+  use_news: true
