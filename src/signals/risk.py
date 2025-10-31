@@ -1,6 +1,3 @@
-from __future__ import annotations
-import pandas as pd
-
 class RiskModel:
     def __init__(self, risk_per_trade: float = 0.01, sl_atr_mult: float = 2.0, tp_rr: float = 2.0):
         self.rpt = risk_per_trade
