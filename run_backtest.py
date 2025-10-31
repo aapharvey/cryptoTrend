@@ -4,6 +4,7 @@ import pandas as pd
 
 from src.adapters.exchange_ccxt import CCXTClient
 from src.adapters.sentiment_providers import get_combined_sentiment
+from src.env import API_MODE
 from src.indicators.trend import ema, supertrend
 from src.indicators.momentum import rsi, macd
 from src.indicators.volatility import atr
@@ -37,7 +38,7 @@ def tech_subscore(df: pd.DataFrame, cfg: dict) -> pd.Series:
 
 def main():
     cfg = load_yaml(Path("config/settings.yaml"))
-    api_mode = cfg.get("api_mode", "offline")
+    api_mode = API_MODE
 
     engine = ConfluenceEngine(Weights(**cfg['confluence']['weights']), Thresholds(**cfg['confluence']['thresholds']))
 

@@ -2,17 +2,10 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import requests
-from pathlib import Path
-import yaml
+from src.env import get_api_keys
 
-def _load_api_keys():
-    try:
-        with open(Path("config/api_keys.yaml"), "r") as f:
-            return yaml.safe_load(f).get("api_keys", {})
-    except Exception:
-        return {}
 
-API_KEYS = _load_api_keys()
+API_KEYS = get_api_keys()
 
 def _safe_get_json(url: str, params: dict | None = None, timeout: int = 10):
     try:
