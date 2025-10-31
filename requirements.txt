@@ -1,0 +1,11 @@
+ccxt>=4.4.31
+pandas>=2.2.2
+numpy>=1.26.4
+pyarrow>=17.0.0
+pydantic>=2.9.2
+PyYAML>=6.0.2
+loguru>=0.7.2
+# Optional for backtesting/plotting; you can add later:
+# vectorbt
+# matplotlib
+# plotly

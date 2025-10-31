@@ -1,0 +1,12 @@
+from pathlib import Path
+import pandas as pd
+
+def ensure_parents(path: Path):
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+def save_parquet(df: pd.DataFrame, path: Path):
+    ensure_parents(path)
+    df.to_parquet(path, index=True)
+
+def load_parquet(path: Path) -> pd.DataFrame:
+    return pd.read_parquet(path)

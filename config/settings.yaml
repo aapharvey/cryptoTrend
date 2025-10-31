@@ -1,0 +1,35 @@
+exchange: binance
+market_type: futures
+symbols: ["BTC/USDT"]
+timeframes: ["1h"]
+lookback_bars: 1500
+
+features:
+  ema: { windows: [20, 50, 200] }
+  rsi: { period: 14 }
+  macd: { fast: 12, slow: 26, signal: 9 }
+  atr: { period: 14 }
+  supertrend: { period: 10, multiplier: 3.0 }
+  pivot: { lookback: 20 }
+
+confluence:
+  weights:
+    trend: 0.40
+    onchain: 0.35
+    sentiment_macro: 0.25
+  thresholds:
+    buy: 0.65
+    sell: -0.65
+    neutral_band: 0.20
+
+risk:
+  risk_per_trade: 0.01
+  max_portfolio_risk: 0.05
+  sl_atr_mult: 2.0
+  tp_rr: 2.0
+
+backtest:
+  fees_bps: 7
+  slippage_bps: 5
+  initial_equity: 10000
+  position_mode: one_way
