@@ -43,8 +43,8 @@ def tech_subscore(df: pd.DataFrame, cfg: dict) -> pd.Series:
     return score.clip(-1, 1)
 
 
-def main():
-    cfg = load_yaml(Path("config/settings.yaml"))
+def run_strategy(cfg: str = "config/settings.yaml"):
+    cfg = yaml.safe_load(Path(cfg).read_text())
     api_mode = API_MODE
 
     engine = ConfluenceEngine(Weights(**cfg['confluence']['weights']), Thresholds(**cfg['confluence']['thresholds']))
@@ -97,7 +97,8 @@ def main():
 
     n_buy = int(entries.sum())
     n_sell = int(exits.sum())
-    log.info(f"<green>BUY signals:</green> {n_buy} | <red>SELL signals:</red> {n_sell} | <blue>HOLD bars:</blue> {len(df_low) - n_buy - n_sell}")
+    log.info(
+        f"<green>BUY signals:</green> {n_buy} | <red>SELL signals:</red> {n_sell} | <blue>HOLD bars:</blue> {len(df_low) - n_buy - n_sell}")
 
     rm = RiskModel(**cfg['risk'])
     log.info("Running backtest with ATR SL/TP and position sizing...")
@@ -129,7 +130,3 @@ def main():
     log.info(f"Win Rate: {m['win_rate']:.2f}% | Profit Factor: {m['profit_factor']:.2f} | Trades: {m['num_trades']}")
     log.info(f"Total Return: {m['total_return']:.2f}% | End Equity: {m['end_equity']:,.2f}")
     log.info(f"Equity Dashboard → {out_dir / 'equity_dashboard.html'}")
-
-
-if __name__ == "__main__":
-    main()
