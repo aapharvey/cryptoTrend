@@ -45,7 +45,7 @@ def tech_subscore(df: pd.DataFrame, cfg: dict) -> pd.Series:
 
 def run_strategy(cfg: str = "config/settings.yaml"):
     cfg = yaml.safe_load(Path(cfg).read_text())
-    api_mode = API_MODE
+    api_mode = cfg.get('api_mode') or API_MODE
 
     engine = ConfluenceEngine(Weights(**cfg['confluence']['weights']), Thresholds(**cfg['confluence']['thresholds']))
 
@@ -68,8 +68,16 @@ def run_strategy(cfg: str = "config/settings.yaml"):
     tech_mid = tech_subscore(df_mid, cfg)
     tech_low = tech_subscore(df_low, cfg)
 
+    sent_cfg = cfg.get('sentiment', {})
     log.info(f"[{api_mode.upper()}] Getting sentiment series...")
-    sent_entry = get_combined_sentiment(symbol, df_low.index, api_mode)
+    sent_entry = get_combined_sentiment(
+        symbol,
+        df_low.index,
+        api_mode,
+        use_fear_greed=sent_cfg.get('use_fear_greed', True),
+        use_funding=sent_cfg.get('use_funding', True),
+        use_news=sent_cfg.get('use_news', True),
+    )
 
     sentiment_weight_factor = 0.5 if api_mode == "offline" else 1.0
 
@@ -102,16 +110,16 @@ def run_strategy(cfg: str = "config/settings.yaml"):
 
     rm = RiskModel(**cfg['risk'])
     log.info("Running backtest with ATR SL/TP and position sizing...")
-    curve = bt_long_sl_tp(df_low, entries, exits, atr_series, rm,
-                          cfg['backtest']['fees_bps'],
-                          cfg['backtest']['slippage_bps'],
-                          cfg['backtest']['initial_equity'])
+    curve, trade_records = bt_long_sl_tp(df_low, entries, exits, atr_series, rm,
+                                         cfg['backtest']['fees_bps'],
+                                         cfg['backtest']['slippage_bps'],
+                                         cfg['backtest']['initial_equity'])
 
     # ====== Performance Analytics ======
     out_dir = Path("data/features")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    trades_df = generate_trade_log(df_low, entries, exits)
+    trades_df = generate_trade_log(trade_records)
     trades_df.to_csv(out_dir / "trades_summary.csv", index=False)
 
     m = metrics_summary(curve, trades_df, cfg['backtest']['initial_equity'])
