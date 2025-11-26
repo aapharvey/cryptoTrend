@@ -93,11 +93,28 @@ def get_news_sentiment(index: pd.DatetimeIndex, mode: str = "live") -> pd.Series
     sim = 0.2 * np.sin(t / 64.0) + 0.1 * np.cos(t / 37.0)
     return pd.Series(np.clip(sim, -1, 1), index=index)
 
-def get_combined_sentiment(symbol: str, index: pd.DatetimeIndex, mode: str = "live") -> pd.Series:
-    fg = get_fear_greed(index, mode)
-    fd = get_funding_sentiment(symbol, index, mode)
-    nw = get_news_sentiment(index, mode)
-    combo = pd.concat([fg, fd, nw], axis=1).fillna(0.0)
-    combo.columns = ["fear_greed","funding","news"]
+def get_combined_sentiment(
+    symbol: str,
+    index: pd.DatetimeIndex,
+    mode: str = "live",
+    *,
+    use_fear_greed: bool = True,
+    use_funding: bool = True,
+    use_news: bool = True,
+) -> pd.Series:
+    components: list[tuple[str, pd.Series]] = []
+    if use_fear_greed:
+        components.append(("fear_greed", get_fear_greed(index, mode)))
+    if use_funding:
+        components.append(("funding", get_funding_sentiment(symbol, index, mode)))
+    if use_news:
+        components.append(("news", get_news_sentiment(index, mode)))
+
+    if not components:
+        return pd.Series(0.0, index=index, dtype=float)
+
+    cols, series = zip(*components)
+    combo = pd.concat(series, axis=1).fillna(0.0)
+    combo.columns = list(cols)
     out = combo.mean(axis=1).clip(-1, 1)
     return out.ewm(span=10, adjust=False).mean().clip(-1, 1)

@@ -1,32 +1,59 @@
 import pandas as pd
+from typing import Iterable
 
 
-def generate_trade_log(df_prices: pd.DataFrame, entries: pd.Series, exits: pd.Series):
-    trades = []
-    in_trade = False
-    entry_px = None
-    entry_time = None
+def generate_trade_log(trades: Iterable[dict] | pd.DataFrame | None) -> pd.DataFrame:
+    """Normalise the trade records emitted by the backtest engine.
 
-    prices = df_prices['close']
+    The engine already accounts for position sizing, fees, and slippage. This helper simply
+    converts its structured trade list into a DataFrame (or copies one if already provided)
+    so the analytics stack downstream can consume consistent data.
+    """
 
-    for ts in df_prices.index:
-        if not in_trade and bool(entries.get(ts, False)):
-            in_trade = True
-            entry_time = ts
-            entry_px = float(prices.loc[ts])
-        elif in_trade and bool(exits.get(ts, False)):
-            exit_px = float(prices.loc[ts])
-            pnl = (exit_px - entry_px) / entry_px
-            trades.append({
-                "entry_time": entry_time,
-                "exit_time": ts,
-                "entry": entry_px,
-                "exit": exit_px,
-                "pnl": float(pnl),
-                "holding_bars": (ts - entry_time),
-            })
-            in_trade = False
-            entry_px = None
-            entry_time = None
+    if trades is None:
+        return pd.DataFrame()
 
-    return pd.DataFrame(trades)
+    if isinstance(trades, pd.DataFrame):
+        df = trades.copy()
+    else:
+        df = pd.DataFrame(list(trades))
+
+    if df.empty:
+        return df
+
+    numeric_cols = [
+        "qty",
+        "entry_fee",
+        "exit_fee",
+        "capital_risked",
+        "entry_cost",
+        "equity_at_entry",
+        "pnl",
+        "pnl_pct",
+        "return_on_risk",
+    ]
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = df[col].astype(float)
+
+    column_order = [
+        "entry_time",
+        "exit_time",
+        "entry_price",
+        "exit_price",
+        "qty",
+        "stop_loss",
+        "take_profit",
+        "entry_fee",
+        "exit_fee",
+        "capital_risked",
+        "entry_cost",
+        "equity_at_entry",
+        "pnl",
+        "pnl_pct",
+        "return_on_risk",
+        "holding_period",
+        "exit_reason",
+    ]
+    cols = [c for c in column_order if c in df.columns]
+    return df.loc[:, cols + [c for c in df.columns if c not in cols]]
